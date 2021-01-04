@@ -1,4 +1,5 @@
-"""Causal inference on discrete data using stochastic complexity of multinomial.
+"""Causal inference on discrete data using stochastic complexity
+of multinomial model class.
 """
 import numpy as np
 from collections import defaultdict
@@ -30,7 +31,6 @@ class CISCM():
         self.y_causes_x = None
         self.confidence = None
         self.significance = None
-        self.compute_cisc()
 
     def preprocess_data(self):
         """ This method preprocesses the data.
