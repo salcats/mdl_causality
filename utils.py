@@ -1,10 +1,11 @@
-import numpy as np
-from math import ceil, e, factorial, log, pi, sqrt, isinf
 from __future__ import division
+import numpy as np
+import os, re, glob
+from math import ceil, e, factorial, log, pi, sqrt, isinf
 from scipy.special import erf
+from matplotlib import pyplot as plt
 
 fact = lambda n: factorial(n)
-
 
 def composition(n):
     half = int(n / 2)
@@ -82,3 +83,26 @@ def mu_y_cond_x(mu_x, mu_y, var_x, var_y, corr_xy, x):
     """ This function computes mean of y conditional on x. """
 
     return mu_y + (np.sqrt(var_y)/np.sqrt(var_x))*corr_xy*(x-mu_x)
+
+
+def plot_multiline(Ys, X, labels, xlabel, ylabel, title, fig_name=None):
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+
+    for i, Y in enumerate(Ys):
+        plt.plot(X, Y, label=labels[i], linewidth=2.0,
+                 dash_joinstyle="bevel", solid_capstyle="round", markeredgecolor="none", linestyle="-")
+        plt.legend(loc="upper left")
+    plt.ylim(0.0, 1.001)
+    if fig_name:
+        plt.savefig("results/%s" % fig_name)
+    else:
+        plt.show()
+    plt.cla()
+
+
+def reverse_argsort(X):
+    indices = list(range(len(X)))
+    indices.sort(key=X.__getitem__, reverse=True)
+    return indices

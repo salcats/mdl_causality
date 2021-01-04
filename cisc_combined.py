@@ -13,13 +13,17 @@ class CISCC():
     direction between x and y. It chooses to use ciscn or
     ciscm based on characteristics of the data. """
 
-    def __init__(self, x, y, scale_factor, m):
+    def __init__(self, scale_factor, m):
 
-        self.x = x
-        self.y = y
+        self.x = None
+        self.y = None
         self.scale_factor = scale_factor
         self.m = m
-        self.conditions = []
+        self.conditions = np.zeros((5, 1))
+
+    def add_data(self, x, y):
+        self.x = x
+        self.y = y
 
     def compute_handmade_conditions(self,
                                     normality_alpha=0.001,
@@ -43,11 +47,11 @@ class CISCC():
         condition_5 = np.abs(np.var(self.x)-np.var(self.y)) > var_diff and \
                         not(self.x[0].is_integer() and self.y[0].is_integer())
 
-        self.conditions.append(condition_1)
-        self.conditions.append(condition_2)
-        self.conditions.append(condition_3)
-        self.conditions.append(condition_4)
-        self.conditions.append(condition_5)
+        self.conditions[0] = condition_1
+        self.conditions[1] = condition_2
+        self.conditions[2] = condition_3
+        self.conditions[3] = condition_4
+        self.conditions[4] = condition_5
 
     def compute_cisc(self):
         """ This method infers the causal direction. It chooses which
@@ -56,7 +60,26 @@ class CISCC():
         0 = Multinomial
         1 = Normal
         """
+        self.compute_handmade_conditions()
+
+        ciscm_model = CISCM(self.x, self.y, self.scale_factor)
+        ciscn_model = CISCN(self.x, self.y, self.m)
+
+        ciscm_model.compute_cisc()
+        ciscn_model.compute_cisc()
+
         model_class_choice = 0
+
+        if np.isnan(ciscm_model.normalised_confidence):
+            model_class_choice = 1
+        else:
+            confidence_scores = [ciscm_model.normalised_confidence, ciscn_model.normalised_confidence]
+            ind = np.argmax(confidence_scores)
+            if ind == 0:
+                model_class_choice = 0
+            else:
+                model_class_choice = 1
+
         if self.conditions[0]:
             model_class_choice = 1
         if self.conditions[1]:
@@ -69,17 +92,19 @@ class CISCC():
             model_class_choice = 1
 
         if model_class_choice == 0:
-            cisc_model = CISCM(self.x, self.y, self.scale_factor)
+            if ciscm_model.likelihood_ratio < 0:
+                cause = 1
+            else:
+                cause = 2
+            output = [cause, ciscm_model.confidence, ciscm_model.normalised_confidence,
+                      ciscm_model.significance, ciscm_model.normalised_significance]
         else:
-            cisc_model = CISCN(self.x, self.y, self.m)
+            if ciscn_model.likelihood_ratio < 0:
+                cause = 1
+            else:
+                cause = 2
 
-        cisc_model.compute_cisc()
-
-        if cisc_model.x_causes_y < cisc_model.y_causes_x:
-            cause = "x"
-        else:
-            cause = "y"
-
-        output = [cause, cisc_model.confidence, cisc_model.significance]
+            output = [cause, ciscn_model.confidence, ciscn_model.normalised_confidence,
+                    ciscn_model.significance, ciscn_model.normalised_significance]
 
         return output

@@ -19,8 +19,8 @@ class CISCM():
         self.x = x
         self.y = y
         self.scale_factor = scale_factor
-        self.y_marginals = defaultdict(self.x)
-        self.x_marginals = defaultdict(self.y)
+        self.y_marginals = defaultdict(list)
+        self.x_marginals = defaultdict(list)
         self.preprocess_data()
         self.find_marginals()
         self.sc_x = None
@@ -30,7 +30,10 @@ class CISCM():
         self.x_causes_y = None
         self.y_causes_x = None
         self.confidence = None
+        self.normalised_confidence = None
+        self.likelihood_ratio = None
         self.significance = None
+        self.normalised_significance = None
 
     def preprocess_data(self):
         """ This method preprocesses the data.
@@ -41,10 +44,10 @@ class CISCM():
     def find_marginals(self):
         """ Not sure exactñy what this does yet. """
         for i, x in enumerate(self.x):
-            self.y_marginals[self.x].append(self.y[i])
+            self.y_marginals[x].append(self.y[i])
 
         for j, y in enumerate(self.y):
-            self.x_marginals[self.y].append(self.x[i])
+            self.x_marginals[y].append(self.x[j])
 
     def return_stochastic_complexity(self, data):
         """ This method returns the stochastic complexity
@@ -66,7 +69,7 @@ class CISCM():
         """ This method returns the conditional stochastic complexity
         of x given y or y given x according to the multinomial model
         class. """
-        return sum(self.find_stochastic_complexity(z) for z in
+        return np.sum(self.return_stochastic_complexity(z) for z in
                    marginal_data.values())
 
     def compute_cisc(self):
@@ -80,9 +83,13 @@ class CISCM():
                                                         self.x_marginals)
 
         normalising_factor = self.sc_x + self.sc_y
-        self.x_causes_y = (self.sc_x + self.sc_y_cond_x)/normalising_factor
-        self.y_causes_x = (self.sc_y + self.sc_x_cond_y)/normalising_factor
-
+        self.x_causes_y = (self.sc_x + self.sc_y_cond_x)
+        self.y_causes_x = (self.sc_y + self.sc_x_cond_y)
+        self.likelihood_ratio = self.x_causes_y - self.y_causes_x
         self.confidence = np.abs(self.x_causes_y - self.y_causes_x)
-        self.signficance = np.power(2, -np.abs(
-                                    self.confidence * normalising_factor)/2)
+        self.normalised_confidence = np.abs(self.x_causes_y - self.y_causes_x
+                                            )/normalising_factor
+        self.normalised_significance = np.power(2, -np.abs(
+                                    self.normalised_confidence)/2)
+        self.significance = np.power(2, -np.abs(
+                                    self.confidence)/2)
