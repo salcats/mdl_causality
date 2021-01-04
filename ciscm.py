@@ -11,7 +11,7 @@ __copyright__ = "Copyright (c) 2017"
 __license__ = "MIT"
 
 
-class CISC():
+class CISCM():
 
     def __init__(self, x, y, scale_factor):
         """ Initialise the class with the data. """

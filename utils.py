@@ -1,5 +1,7 @@
+import numpy as np
 from math import ceil, e, factorial, log, pi, sqrt, isinf
 from __future__ import division
+from scipy.special import erf
 
 fact = lambda n: factorial(n)
 
@@ -34,3 +36,49 @@ def multinomial_with_recurrence(L, n):
 
 def log2(n):
     return log(n or 1, 2)
+
+
+def neg_log_mle(x, mu, var, n):
+    """ This function computes the negative log likelihood of the
+    maximum likelihood estimator for the Normal distribution. """
+    n_half = n/2
+    var_half_inv = (1/(2*var))
+
+    return (n_half*np.log(2*np.pi*var) + var_half_inv*np.sum(
+                                                          np.power(x-mu, 2)))
+
+
+def log_parametric_complexity(var, mu, m, n):
+    """ This function computes the log parametric complexity of the
+    Normal distribution premultiplied by the luckiness function. """
+
+    n_half = n/2
+    term_1 = n_half*np.log(n_half)
+    term_2 = -n_half
+    term_3 = np.log(np.sqrt(np.pi)*np.abs(m)*(erf(var/np.abs(m))+1))
+    term_4 = np.log(2*var)
+    term_5 = term_1 - n_half + 0.5*np.log((2*np.pi)/n_half)
+
+    return term_1+term_2+term_3-term_4-term_5
+
+
+def var_x_cond_y(var_x, corr_xy):
+    """ This function computes variance of x conditional on y. """
+    return (1-np.power(corr_xy, 2))*var_x
+
+
+def var_y_cond_x(var_y, corr_xy):
+    """ This function computes variance of y conditional on x. """
+    return (1-np.power(corr_xy, 2))*var_y
+
+
+def mu_x_cond_y(mu_x, mu_y, var_x, var_y, corr_xy, y):
+    """ This function computes mean of x conditional on y. """
+
+    return mu_x + (np.sqrt(var_x)/np.sqrt(var_y))*corr_xy*(y-mu_y)
+
+
+def mu_y_cond_x(mu_x, mu_y, var_x, var_y, corr_xy, x):
+    """ This function computes mean of y conditional on x. """
+
+    return mu_y + (np.sqrt(var_y)/np.sqrt(var_x))*corr_xy*(x-mu_x)
