@@ -107,4 +107,13 @@ class CISCC():
             output = [cause, ciscn_model.confidence, ciscn_model.normalised_confidence,
                     ciscn_model.significance]
 
+        '''
+        if ciscm_model.likelihood_ratio < 0:
+            output = [1, ciscm_model.confidence, ciscm_model.normalised_confidence,
+                                  ciscm_model.significance]
+        elif ciscn_model.likelihood_ratio < 0:
+            output = [cause, ciscn_model.confidence, ciscn_model.normalised_confidence,
+            ciscn_model.significance]
+        More experiments with how to choose the right model class.
+        '''
         return output

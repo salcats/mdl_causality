@@ -39,6 +39,7 @@ class BenchmarkTest():
     def evaluate_all_pairs(self):
         """ This method evaluates all pairs. """
         results = np.zeros((self.no_pairs, 4))
+        count = 0
         for index in range(self.no_pairs):
             results[index, :] = self.evaluate_pair(index)
 
@@ -57,7 +58,7 @@ if __name__ == '__main__':
     benchmark_test = BenchmarkTest()
     results = benchmark_test.evaluate_all_pairs()
 
-    plot_confidence_tcep(results, 0.001, normalised=False)
-    #plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
-    #                                     confidence=True, normalised=False)
-    #plot_conf_v_p_value(results, False, True)
+    #plot_confidence_tcep(results, 0.001, normalised=False)
+    plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
+                                         confidence=True, normalised=False)
+    plot_conf_v_p_value(results, False, True)
