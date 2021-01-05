@@ -30,7 +30,6 @@ class CISCN():
         self.normalised_confidence = None
         self.likelihood_ratio = None
         self.significance = None
-        self.normalised_significance = None
 
     def preprocess_data(self):
         """ This method preprocesses the data. """
@@ -143,7 +142,5 @@ class CISCN():
         self.confidence = np.abs(self.x_causes_y - self.y_causes_x)
         self.normalised_confidence = np.abs(self.x_causes_y - self.y_causes_x
                                             )/normalising_factor
-        self.normalised_significance = np.power(2, -np.abs(
-                                    self.normalised_confidence)/2)
         self.significance = np.power(2, -np.abs(
                                     self.confidence)/2)

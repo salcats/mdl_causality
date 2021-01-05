@@ -97,7 +97,7 @@ class CISCC():
             else:
                 cause = 2
             output = [cause, ciscm_model.confidence, ciscm_model.normalised_confidence,
-                      ciscm_model.significance, ciscm_model.normalised_significance]
+                      ciscm_model.significance]
         else:
             if ciscn_model.likelihood_ratio < 0:
                 cause = 1
@@ -105,6 +105,6 @@ class CISCC():
                 cause = 2
 
             output = [cause, ciscn_model.confidence, ciscn_model.normalised_confidence,
-                    ciscn_model.significance, ciscn_model.normalised_significance]
+                    ciscn_model.significance]
 
         return output

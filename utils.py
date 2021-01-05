@@ -1,11 +1,13 @@
 from __future__ import division
 import numpy as np
 import os, re, glob
-from math import ceil, e, factorial, log, pi, sqrt, isinf
+from math import ceil, e, factorial, log, pi, sqrt, isinf, isnan
 from scipy.special import erf
 from matplotlib import pyplot as plt
+import matplotlib
 
 fact = lambda n: factorial(n)
+plt.style.use('ggplot')
 
 def composition(n):
     half = int(n / 2)
@@ -106,3 +108,98 @@ def reverse_argsort(X):
     indices = list(range(len(X)))
     indices.sort(key=X.__getitem__, reverse=True)
     return indices
+
+
+def plot_confidence_tcep(results, alpha, normalised=False):
+
+    results[:, 0] = results[:, 0] == 1
+    if normalised:
+        indices = reverse_argsort(results[:, 2])
+        sorted_confidence = np.asarray(([results[:, 2][i] for i in indices]))
+    else:
+        indices = reverse_argsort(results[:, 1])
+        sorted_confidence = np.asarray(([results[:, 1][i] for i in indices]))
+
+    sorted_significance = np.asarray(([results[:, 3][i] for i in indices]))
+    sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
+
+    cmap = matplotlib.colors.ListedColormap(['red', 'green'])
+
+    fig, ax = plt.subplots(figsize=(12, 4))
+
+    x = np.linspace(1, len(sorted_confidence), len(sorted_confidence))
+
+    ax.scatter(x, sorted_confidence,
+               s = 2, c=sorted_labels, cmap=cmap)
+
+    significance_mask = np.asarray((sorted_significance)) >= alpha
+
+    x_ann = x[significance_mask]
+    y_ann = sorted_confidence[significance_mask]
+
+    arrow_length = 0.1*np.max(sorted_confidence)
+    print (arrow_length)
+
+    for i in range(len(x_ann)):
+        ax.annotate('', xy=(x_ann[i], y_ann[i]),
+                    xytext=(x_ann[i], y_ann[i] + arrow_length),
+                    arrowprops=dict(linewidth=0.00001, facecolor='black'))
+
+    plt.show()
+
+
+
+def plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
+                                          confidence=True, normalised=False):
+
+    results[:, 0] = results[:, 0] == 1
+
+    if confidence:
+        if normalised:
+            indices = reverse_argsort(results[:, 2])
+            sorted_confidence = np.asarray(([results[:, 2][i] for i in indices]))
+            sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
+        else:
+            indices = reverse_argsort(results[:, 1])
+            sorted_confidence = np.asarray(([results[:, 1][i] for i in indices]))
+            sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
+    else:
+        if normalised:
+            indices = reverse_argsort(results[:, 4])
+            sorted_confidence = np.asarray(([results[:, 4][i] for i in indices]))
+            sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
+        else:
+            indices = reverse_argsort(results[:, 3])
+            sorted_confidence = np.asarray(([results[:, 3][i] for i in indices]))
+            sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
+
+    accuracy = np.sum(results[:, 0])/benchmark_test.no_pairs
+    dec_rate = np.arange(0.02, 1.01, 0.01)
+    accs = []
+    for r in dec_rate:
+        maxIdx = int(r * benchmark_test.no_pairs)
+        labels = sorted_labels[:maxIdx]
+        accs.append(sum(labels) / len(labels))
+
+    plot_multiline([accs], dec_rate, [
+                    "COMBINED: " + str(np.round(accuracy, 4))], "decision rate",
+                   "accuracy", "decision rate versus accuracy")
+
+
+def plot_conf_v_p_value(results, normalised=False, log=False):
+
+    if normalised:
+        conf = [x for x in results[:, 2]]
+        pv = [x for x in results[:, 3]]
+    else:
+        conf = [x for x in results[:, 1]]
+        pv = [x for x in results[:, 3]]
+
+    if log:
+        plt.scatter(conf, -np.log(pv))
+        plt.ylabel('-log p-value')
+    else:
+        plt.scatter(conf, (pv))
+        plt.ylabel('p-value')
+    plt.xlabel('Confidence')
+    plt.show()
