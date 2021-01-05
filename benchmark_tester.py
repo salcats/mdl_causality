@@ -58,7 +58,7 @@ if __name__ == '__main__':
     benchmark_test = BenchmarkTest()
     results = benchmark_test.evaluate_all_pairs()
 
-    #plot_confidence_tcep(results, 0.001, normalised=False)
+    plot_confidence_tcep(results, 0.001, normalised=False)
     plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
                                          confidence=True, normalised=False)
-    plot_conf_v_p_value(results, False, True)
+    #plot_conf_v_p_value(results, False, True)

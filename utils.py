@@ -138,13 +138,13 @@ def plot_confidence_tcep(results, alpha, normalised=False):
     y_ann = sorted_confidence[significance_mask]
 
     arrow_length = 0.1*np.max(sorted_confidence)
-    print (arrow_length)
 
+    '''
     for i in range(len(x_ann)):
         ax.annotate('', xy=(x_ann[i], y_ann[i]),
                     xytext=(x_ann[i], y_ann[i] + arrow_length),
                     arrowprops=dict(linewidth=0.00001, facecolor='black'))
-
+    '''
     plt.show()
 
 

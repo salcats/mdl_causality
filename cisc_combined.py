@@ -5,8 +5,8 @@ of multinomial or normal model class.
 import numpy as np
 from ciscn import CISCN
 from ciscm import CISCM
-from scipy.stats import normaltest
-
+from scipy.stats import normaltest, spearmanr
+from matplotlib import pyplot as plt
 
 class CISCC():
     """ This class combines ciscn and ciscm to infer causal
@@ -28,7 +28,7 @@ class CISCC():
     def compute_handmade_conditions(self,
                                     normality_alpha=0.001,
                                     data_size=2000,
-                                    correlation=0.75,
+                                    correlation=0.705,
                                     var_diff=1e4):
         """ This method computes the value of the conditionals
         used to determine which model class to use. These conditions
@@ -108,12 +108,13 @@ class CISCC():
                     ciscn_model.significance]
 
         '''
-        if ciscm_model.likelihood_ratio < 0:
-            output = [1, ciscm_model.confidence, ciscm_model.normalised_confidence,
-                                  ciscm_model.significance]
-        elif ciscn_model.likelihood_ratio < 0:
-            output = [cause, ciscn_model.confidence, ciscn_model.normalised_confidence,
-            ciscn_model.significance]
-        More experiments with how to choose the right model class.
+        if ciscm_model.likelihood_ratio < 0 and not ciscn_model.likelihood_ratio < 0:
+            print ('M')
+            print (len(self.x))
+        elif ciscn_model.likelihood_ratio < 0 and not ciscm_model.likelihood_ratio < 0:
+            print ('N')
+            print (len(self.x))
         '''
+
+
         return output
