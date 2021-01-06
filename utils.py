@@ -51,7 +51,7 @@ def neg_log_mle(x, mu, var, n):
                                                           np.power(x-mu, 2)))
 
 
-def log_parametric_complexity(var, mu, m, n):
+def log_parametric_complexity(var, m, n):
     """ This function computes the log parametric complexity of the
     Normal distribution premultiplied by the luckiness function. """
 
@@ -110,17 +110,14 @@ def reverse_argsort(X):
     return indices
 
 
-def plot_confidence_tcep(results, alpha, normalised=False):
+def plot_confidence_tcep(results, alpha):
 
     results[:, 0] = results[:, 0] == 1
-    if normalised:
-        indices = reverse_argsort(results[:, 2])
-        sorted_confidence = np.asarray(([results[:, 2][i] for i in indices]))
-    else:
-        indices = reverse_argsort(results[:, 1])
-        sorted_confidence = np.asarray(([results[:, 1][i] for i in indices]))
 
-    sorted_significance = np.asarray(([results[:, 3][i] for i in indices]))
+    indices = reverse_argsort(results[:, 1])
+    sorted_confidence = np.asarray(([results[:, 1][i] for i in indices]))
+
+    sorted_significance = np.asarray(([results[:, 2][i] for i in indices]))
     sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
 
     cmap = matplotlib.colors.ListedColormap(['red', 'green'])
@@ -139,39 +136,27 @@ def plot_confidence_tcep(results, alpha, normalised=False):
 
     arrow_length = 0.1*np.max(sorted_confidence)
 
-    '''
     for i in range(len(x_ann)):
         ax.annotate('', xy=(x_ann[i], y_ann[i]),
                     xytext=(x_ann[i], y_ann[i] + arrow_length),
-                    arrowprops=dict(linewidth=0.00001, facecolor='black'))
-    '''
+                    arrowprops=dict(width=1,
+                                    headwidth=5,
+                                    facecolor='black'))
+
     plt.show()
 
 
-
 def plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
-                                          confidence=True, normalised=False):
+                                          confidence=True):
 
     results[:, 0] = results[:, 0] == 1
 
     if confidence:
-        if normalised:
-            indices = reverse_argsort(results[:, 2])
-            sorted_confidence = np.asarray(([results[:, 2][i] for i in indices]))
-            sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
-        else:
-            indices = reverse_argsort(results[:, 1])
-            sorted_confidence = np.asarray(([results[:, 1][i] for i in indices]))
-            sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
+        indices = reverse_argsort(results[:, 1])
+        sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
     else:
-        if normalised:
-            indices = reverse_argsort(results[:, 4])
-            sorted_confidence = np.asarray(([results[:, 4][i] for i in indices]))
-            sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
-        else:
-            indices = reverse_argsort(results[:, 3])
-            sorted_confidence = np.asarray(([results[:, 3][i] for i in indices]))
-            sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
+        indices = reverse_argsort(results[:, 2])
+        sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
 
     accuracy = np.sum(results[:, 0])/benchmark_test.no_pairs
     dec_rate = np.arange(0.02, 1.01, 0.01)
@@ -182,18 +167,16 @@ def plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
         accs.append(sum(labels) / len(labels))
 
     plot_multiline([accs], dec_rate, [
-                    "COMBINED: " + str(np.round(accuracy, 4))], "decision rate",
-                   "accuracy", "decision rate versus accuracy")
+                    "COMBINED: " + str(np.round(accuracy, 4))],
+                    "decision rate",
+                    "accuracy",
+                    "decision rate versus accuracy")
 
 
-def plot_conf_v_p_value(results, normalised=False, log=False):
+def plot_conf_v_p_value(results, log=False):
 
-    if normalised:
-        conf = [x for x in results[:, 2]]
-        pv = [x for x in results[:, 3]]
-    else:
-        conf = [x for x in results[:, 1]]
-        pv = [x for x in results[:, 3]]
+    conf = [x for x in results[:, 1]]
+    pv = [x for x in results[:, 2]]
 
     if log:
         plt.scatter(conf, -np.log(pv))

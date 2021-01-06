@@ -5,8 +5,8 @@ of multinomial or normal model class.
 import numpy as np
 from ciscn import CISCN
 from ciscm import CISCM
-from scipy.stats import normaltest, spearmanr
-from matplotlib import pyplot as plt
+from scipy.stats import normaltest
+
 
 class CISCC():
     """ This class combines ciscn and ciscm to infer causal
@@ -70,10 +70,10 @@ class CISCC():
 
         model_class_choice = 0
 
-        if np.isnan(ciscm_model.normalised_confidence):
+        if np.isnan(ciscm_model.confidence):
             model_class_choice = 1
         else:
-            confidence_scores = [ciscm_model.normalised_confidence, ciscn_model.normalised_confidence]
+            confidence_scores = [ciscm_model.confidence, ciscn_model.confidence]
             ind = np.argmax(confidence_scores)
             if ind == 0:
                 model_class_choice = 0
@@ -96,25 +96,13 @@ class CISCC():
                 cause = 1
             else:
                 cause = 2
-            output = [cause, ciscm_model.confidence, ciscm_model.normalised_confidence,
-                      ciscm_model.significance]
+            output = [cause, ciscm_model.confidence, ciscm_model.significance]
         else:
             if ciscn_model.likelihood_ratio < 0:
                 cause = 1
             else:
                 cause = 2
 
-            output = [cause, ciscn_model.confidence, ciscn_model.normalised_confidence,
-                    ciscn_model.significance]
-
-        '''
-        if ciscm_model.likelihood_ratio < 0 and not ciscn_model.likelihood_ratio < 0:
-            print ('M')
-            print (len(self.x))
-        elif ciscn_model.likelihood_ratio < 0 and not ciscm_model.likelihood_ratio < 0:
-            print ('N')
-            print (len(self.x))
-        '''
-
+            output = [cause, ciscn_model.confidence, ciscn_model.significance]
 
         return output

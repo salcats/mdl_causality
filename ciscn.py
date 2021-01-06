@@ -46,7 +46,7 @@ class CISCN():
         model class. """
 
         log_loss = neg_log_mle(data, mean, variance, self.n)
-        log_pc = log_parametric_complexity(variance, mean, self.m, self.n)
+        log_pc = log_parametric_complexity(variance, self.m, self.n)
 
         stochastic_complexity = log_loss + log_pc
 
@@ -82,7 +82,7 @@ class CISCN():
         I_22 = I_22_term_1 + I_22_term_2
 
         I_1_term_1 = c_4*n_half*np.log(2*np.pi*var_y_c_x)
-        I_1_term_2 = c_4*log_parametric_complexity(self.var_y, self.mean_y,
+        I_1_term_2 = c_4*log_parametric_complexity(var_y_c_x,
                                                    self.m, self.n)
         I_1 = I_1_term_1 + I_1_term_2
 
@@ -119,7 +119,7 @@ class CISCN():
         I_22 = I_22_term_1 + I_22_term_2
 
         I_1_term_1 = c_4*n_half*np.log(2*np.pi*var_x_c_y)
-        I_1_term_2 = c_4*log_parametric_complexity(self.var_x, self.mean_x,
+        I_1_term_2 = c_4*log_parametric_complexity(var_x_c_y,
                                                    self.m, self.n)
         I_1 = I_1_term_1 + I_1_term_2
 
@@ -135,12 +135,11 @@ class CISCN():
         self.compute_sc_y_cond_x()
         self.compute_sc_x_cond_y()
 
-        normalising_factor = self.sc_x + self.sc_y
         self.x_causes_y = (self.sc_x + (1/self.n)*self.sc_y_cond_x)
         self.y_causes_x = (self.sc_y + (1/self.n)*self.sc_x_cond_y)
         self.likelihood_ratio = self.x_causes_y - self.y_causes_x
         self.confidence = np.abs(self.x_causes_y - self.y_causes_x)
         self.normalised_confidence = np.abs(self.x_causes_y - self.y_causes_x
-                                            )/normalising_factor
+                                            )
         self.significance = np.power(2, -np.abs(
                                     self.confidence)/2)

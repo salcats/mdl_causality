@@ -30,7 +30,6 @@ class CISCM():
         self.x_causes_y = None
         self.y_causes_x = None
         self.confidence = None
-        self.normalised_confidence = None
         self.likelihood_ratio = None
         self.significance = None
 
@@ -80,13 +79,9 @@ class CISCM():
                                                         self.y_marginals)
         self.sc_x_cond_y = self.return_conditional_stochastic_complexity(
                                                         self.x_marginals)
-
-        normalising_factor = self.sc_x + self.sc_y
         self.x_causes_y = (self.sc_x + self.sc_y_cond_x)
         self.y_causes_x = (self.sc_y + self.sc_x_cond_y)
         self.likelihood_ratio = self.x_causes_y - self.y_causes_x
         self.confidence = np.abs(self.x_causes_y - self.y_causes_x)
-        self.normalised_confidence = np.abs(self.x_causes_y - self.y_causes_x
-                                            )/normalising_factor
         self.significance = np.power(2, -np.abs(
                                     self.confidence)/2)
