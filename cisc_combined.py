@@ -95,13 +95,13 @@ class CISCC():
             if ciscm_model.likelihood_ratio < 0:
                 cause = 1
             else:
-                cause = 2
+                cause = -1
             output = [cause, ciscm_model.confidence, ciscm_model.significance]
         else:
             if ciscn_model.likelihood_ratio < 0:
                 cause = 1
             else:
-                cause = 2
+                cause = -1
 
             output = [cause, ciscn_model.confidence, ciscn_model.significance]
 
