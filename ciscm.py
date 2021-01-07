@@ -81,7 +81,7 @@ class CISCM():
                                                         self.x_marginals)
         self.x_causes_y = (self.sc_x + self.sc_y_cond_x)
         self.y_causes_x = (self.sc_y + self.sc_x_cond_y)
-        self.likelihood_ratio = self.x_causes_y - self.y_causes_x
-        self.confidence = np.abs(self.x_causes_y - self.y_causes_x)
+        self.likelihood_ratio = 0 if self.x_causes_y == self.y_causes_x else self.x_causes_y - self.y_causes_x
+        self.confidence = np.abs(self.likelihood_ratio)
         self.significance = np.power(2, -np.abs(
                                     self.confidence)/2)

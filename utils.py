@@ -112,8 +112,6 @@ def reverse_argsort(X):
 
 def plot_confidence_tcep(results, alpha):
 
-    print (results[:, 0])
-
     results[:, 0] = results[:, 0] == 1
     indices = reverse_argsort(results[:, 1])
     sorted_confidence = np.asarray(([results[:, 1][i] for i in indices]))
@@ -121,7 +119,7 @@ def plot_confidence_tcep(results, alpha):
     sorted_significance = np.asarray(([results[:, 2][i] for i in indices]))
     sorted_labels = np.asarray(([results[:, 0][i] for i in indices]))
 
-    cmap = matplotlib.colors.ListedColormap(['green', 'red'])
+    cmap = matplotlib.colors.ListedColormap(['red', 'green'])
 
     fig, ax = plt.subplots(figsize=(12, 4))
 
@@ -136,14 +134,14 @@ def plot_confidence_tcep(results, alpha):
     y_ann = sorted_confidence[significance_mask]
 
     arrow_length = 0.1*np.max(sorted_confidence)
-
+    '''
     for i in range(len(x_ann)):
         ax.annotate('', xy=(x_ann[i], y_ann[i]),
                     xytext=(x_ann[i], y_ann[i] + arrow_length),
                     arrowprops=dict(width=1,
                                     headwidth=5,
                                     facecolor='black'))
-
+    '''
     plt.show()
 
 

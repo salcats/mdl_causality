@@ -28,7 +28,7 @@ class CISCC():
     def compute_handmade_conditions(self,
                                     normality_alpha=0.001,
                                     data_size=2000,
-                                    correlation=0.705,
+                                    correlation=0.70,
                                     var_diff=1e4):
         """ This method computes the value of the conditionals
         used to determine which model class to use. These conditions
@@ -69,16 +69,12 @@ class CISCC():
         ciscn_model.compute_cisc()
 
         model_class_choice = 0
-
-        if np.isnan(ciscm_model.confidence):
-            model_class_choice = 1
+        confidence_scores = [ciscm_model.confidence, ciscn_model.confidence]
+        ind = np.argmax(confidence_scores)
+        if ind == 0:
+            model_class_choice = 0
         else:
-            confidence_scores = [ciscm_model.confidence, ciscn_model.confidence]
-            ind = np.argmax(confidence_scores)
-            if ind == 0:
-                model_class_choice = 0
-            else:
-                model_class_choice = 1
+            model_class_choice = 1
 
         if self.conditions[0]:
             model_class_choice = 1

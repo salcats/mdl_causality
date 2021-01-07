@@ -57,7 +57,8 @@ class BenchmarkTest():
         elif 10000 < len(x):
             sample_fraction = 0.1
 
-        sample_size = int(sample_fraction*len(x))
+        sample_fraction = 0.2
+        sample_size = np.max([50, int(sample_fraction*len(x))])
         results = np.zeros((no_base_learners, 3))
         num_cores = multiprocessing.cpu_count()
 
@@ -79,13 +80,11 @@ class BenchmarkTest():
             causal_score = causal_score*confidence
             results[learner, :] = [causal_score, confidence, p_value]
 
-        print (results)
         output = [0, 0, 0]
-        output[0] = np.sign(np.max(results[:, 1]))
+        output[0] = np.sum(results[:, 0])
         output[1] = np.mean(results[:, 1])
         output[2] = np.mean(results[:, 2])
 
-        print ('Completed pair: ', index)
         return output
 
     def evaluate_all_pairs(self):
@@ -93,11 +92,9 @@ class BenchmarkTest():
         results = np.zeros((self.no_pairs, 3))
         for index in range(self.no_pairs):
             results[index, :] = self.evaluate_pair(index)
-
-        ## Remove infs and nans
-        max_conf = np.max(results[:, 1][np.logical_not(np.isinf(results[:, 1]))])
-        results[:, 1][np.isinf(results[:, 1])] = max_conf
-        results[:, 2][np.isnan(results[:, 2])] = 0
+        #results[:, 1] = (1 - np.exp(-results[:, 1]))/(1 + np.exp(-results[:, 1]))
+        #(results[:, 1] - np.min(results[:, 1]))/(
+        #                np.max(results[:, 1]) - np.min(results[:, 1]))
 
         return results
 
@@ -108,10 +105,8 @@ class BenchmarkTest():
             results[index, :] = self.evaluate_pair_with_ensemble(index,
                                                                  no_base_learners)
 
-        ## Remove infs and nans
-        max_conf = np.max(results[:, 1][np.logical_not(np.isinf(results[:, 1]))])
-        results[:, 1][np.isinf(results[:, 1])] = max_conf
-        results[:, 2][np.isnan(results[:, 2])] = 0
+        results[:, 1] = (results[:, 1] - np.min(results[:, 1]))/(
+                        np.max(results[:, 1]) - np.min(results[:, 1]))
 
         return results
 
@@ -120,10 +115,10 @@ if __name__ == '__main__':
 
     benchmark_test = BenchmarkTest()
 
-    results = benchmark_test.evaluate_all_pairs_with_ensemble(10)
-    #results = benchmark_test.evaluate_all_pairs()
+    #results = benchmark_test.evaluate_all_pairs_with_ensemble(50)
+    results = benchmark_test.evaluate_all_pairs()
 
-    #plot_confidence_tcep(results, 0.001)
+    plot_confidence_tcep(results, 0.001)
     plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
                                          confidence=True)
     #plot_conf_v_p_value(results, True)
