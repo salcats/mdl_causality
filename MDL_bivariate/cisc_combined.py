@@ -52,7 +52,7 @@ class CISCC():
         self.conditions[3] = condition_4
         self.conditions[4] = condition_5
 
-    def compute_cisc(self):
+    def compute_cisc(self, preprocess=False):
         """ This method infers the causal direction. It chooses which
         model class to encode the data with and then computes the cisc
         score with that model class.
@@ -61,8 +61,8 @@ class CISCC():
         """
         self.compute_handmade_conditions()
 
-        ciscm_model = CISCM(self.x, self.y, self.scale_factor)
-        ciscn_model = CISCN(self.x, self.y, self.m)
+        ciscm_model = CISCM(self.x, self.y, self.scale_factor, preprocess)
+        ciscn_model = CISCN(self.x, self.y, self.m, preprocess)
 
         ciscm_model.compute_cisc()
         ciscn_model.compute_cisc()
@@ -75,6 +75,7 @@ class CISCC():
         else:
             model_class_choice = 1
 
+
         if self.conditions[0]:
             model_class_choice = 1
         if self.conditions[1]:
@@ -85,6 +86,7 @@ class CISCC():
             model_class_choice = 1
         if self.conditions[4]:
             model_class_choice = 1
+
 
         if model_class_choice == 0:
             if ciscm_model.likelihood_ratio < 0:
@@ -102,7 +104,6 @@ class CISCC():
 
         '''
         if ciscm_model.likelihood_ratio < 0 and ciscn_model.likelihood_ratio > 0:
-            print ('cat')
             output = [1, ciscm_model.confidence, ciscm_model.significance]
         if ciscm_model.likelihood_ratio > 0 and ciscn_model.likelihood_ratio < 0:
             output = [1, ciscn_model.confidence, ciscn_model.significance]

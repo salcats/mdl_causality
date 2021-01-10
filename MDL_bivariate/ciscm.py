@@ -17,14 +17,16 @@ __license__ = "MIT"
 
 class CISCM():
 
-    def __init__(self, x, y, scale_factor):
+    def __init__(self, x, y, scale_factor, preprocess=False):
         """ Initialise the class with the data. """
         self.x = x
         self.y = y
         self.scale_factor = scale_factor
         self.y_marginals = defaultdict(list)
         self.x_marginals = defaultdict(list)
-        self.preprocess_data()
+        if preprocess:
+            self.preprocess_data()
+        self.discretise_data()
         self.find_marginals()
         self.sc_x = None
         self.sc_y = None
@@ -36,11 +38,24 @@ class CISCM():
         self.likelihood_ratio = None
         self.significance = None
 
-    def preprocess_data(self):
-        """ This method preprocesses the data.
+    def discretise_data(self):
+        """ This method discretises the data.
         Current implementation is very simple. """
+
         self.x = np.multiply(self.x, self.scale_factor).astype(np.int)
         self.y = np.multiply(self.y, self.scale_factor).astype(np.int)
+
+    def preprocess_data(self):
+        """ This method normalises and standardises the data. """
+
+        # Normalise the data
+        self.x = (self.x - np.max(self.x)) / (np.max(self.x)-np.min(self.x))
+        self.y = (self.y - np.max(self.y)) / (np.max(self.y)-np.min(self.y))
+
+        # Standardise the data
+        self.x = (self.x-np.mean(self.x)) / np.std(self.x)
+        self.y = (self.y-np.mean(self.y)) / np.std(self.y)
+
 
     def find_marginals(self):
         """ Not sure exactñy what this does yet. """

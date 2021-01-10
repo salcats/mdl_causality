@@ -2,6 +2,8 @@
 """
 import numpy as np
 import multiprocessing
+import matplotlib
+from mpl_toolkits.mplot3d import Axes3D
 from cdt.data import load_dataset
 from cisc_combined import CISCC
 from utils import plot_multiline, reverse_argsort
@@ -12,6 +14,7 @@ from math import isinf, isnan
 from joblib import Parallel, delayed
 from cdt.causality.pairwise import RECI, IGCI, CDS, ANM, RCC
 from sklearn.model_selection import train_test_split
+from sklearn.manifold import TSNE
 
 class BenchmarkTestCep():
 
@@ -22,13 +25,12 @@ class BenchmarkTestCep():
         self.ciscc_output = None
         self.ciscc_model = CISCC(1e3, 0.1)
 
-
-    def evaluate_pair(self, index):
+    def evaluate_pair(self, index, preprocess):
         """ This method evaluates a given pair. """
         x = self.data['A'][index]
         y = self.data['B'][index]
         self.ciscc_model.add_data(x, y)
-        output = np.asarray((self.ciscc_model.compute_cisc()))
+        output = np.asarray((self.ciscc_model.compute_cisc(preprocess)))
         return output
 
     def evaluate_pair_with_ensemble(self,
@@ -80,11 +82,11 @@ class BenchmarkTestCep():
 
         return output
 
-    def evaluate_all_pairs(self):
+    def evaluate_all_pairs(self, preprocess):
         """ This method evaluates all pairs. """
         results = np.zeros((self.no_pairs, 3))
         for index in range(self.no_pairs):
-            results[index, :] = self.evaluate_pair(index)
+            results[index, :] = self.evaluate_pair(index, preprocess)
 
         #results[:, 1] = (1 - np.exp(-results[:, 1]))/(1 + np.exp(-results[:, 1]))
         #(results[:, 1] - np.min(results[:, 1]))/(
@@ -92,7 +94,22 @@ class BenchmarkTestCep():
 
         return results
 
-    def evaluate_all_pairs_method(self, method):
+
+    def evaluate_all_pairs_method(self, method, preprocess):
+
+        if preprocess:
+            for pair in range(len(self.data_no_weights['A'])):
+                x = self.data_no_weights['A'][pair]
+                y = self.data_no_weights['B'][pair]
+
+                x = (x - np.max(x)) / (np.max(x)-np.min(x))
+                y = (y - np.max(y)) / (np.max(y)-np.min(y))
+                # Standardise the data
+                x = (x-np.mean(x)) / np.std(x)
+                y = (y-np.mean(y)) / np.std(y)
+
+                self.data_no_weights['A'][pair] = x
+                self.data_no_weights['B'][pair] = y
 
         if method == 'RECI':
             obj = RECI(degree=2)
@@ -169,13 +186,13 @@ class BenchmarkTestCep():
 
     def compare_methods(self, methods):
 
-        results_CISCC = self.evaluate_all_pairs()
+        results_CISCC = self.evaluate_all_pairs(True)
         causes = results_CISCC[:, 0]
         scores = results_CISCC[:, 1]
         methods.remove('CISCC')
         for method in methods:
 
-            results = self.evaluate_all_pairs_method(method)
+            results = self.evaluate_all_pairs_method(method, True)
             causes = np.column_stack((causes, results[:, 0]))
             scores = np.column_stack((scores, results[:, 1]))
 
@@ -200,14 +217,11 @@ if __name__ == '__main__':
 
     benchmark_test = BenchmarkTestCep()
 
-    #results = benchmark_test.evaluate_all_pairs_with_ensemble(50)
     methods = ['CISCC','RECI', 'IGCI', 'CDS']
     causes, scores = benchmark_test.compare_methods(methods)
-    plot_accuracy_comparison(benchmark_test, causes, scores, methods)
+    print (np.sum(np.sum(causes == 1, axis = 1) > 0)/benchmark_test.no_pairs)
+    plot_accuracy_comparison(benchmark_test, causes, scores, methods, True)
     quit()
-
-
-
 
     '''
     plot_confidence_tcep(results, 0.001)

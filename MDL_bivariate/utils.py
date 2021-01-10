@@ -241,12 +241,6 @@ def extract_cep_data():
         x = xy_data[:, 0]
         y = xy_data[:, 1]
 
-        x = (x-np.mean(x))/np.std(x)
-        y = (y-np.mean(y))/np.std(y)
-
-        x = (x-np.min(x))/(np.max(x) - np.min(x))
-        y = (y-np.min(y))/(np.max(y) - np.min(y))
-
         if truths[pair] == ("x", "y"):
             cep_df['A'][pair] = x
             cep_df['B'][pair] = y

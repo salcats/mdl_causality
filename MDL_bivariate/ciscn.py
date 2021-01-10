@@ -8,13 +8,14 @@ from utils import var_x_cond_y, var_y_cond_x
 
 class CISCN():
 
-    def __init__(self, x, y, m):
+    def __init__(self, x, y, m, preprocess=False):
         """ Initialise the class with the data. """
         self.x = x
         self.y = y
         self.m = m
         self.n = len(x)
-        #self.preprocess_data()
+        if preprocess:
+            self.preprocess_data()
         self.corr_xy = np.corrcoef(self.x, self.y)[0, 1]
         self.mean_x = np.mean(self.x)
         self.mean_y = np.mean(self.y)
@@ -34,8 +35,8 @@ class CISCN():
     def preprocess_data(self):
         """ This method preprocesses the data. """
         # Normalise the data
-        self.x = (np.max(self.x) - self.x) / (np.max(self.x)-np.min(self.x))
-        self.y = (np.max(self.y) - self.y) / (np.max(self.y)-np.min(self.y))
+        self.x = (self.x - np.max(self.x)) / (np.max(self.x)-np.min(self.x))
+        self.y = (self.y - np.max(self.y)) / (np.max(self.y)-np.min(self.y))
         # Standardise the data
         self.x = (self.x-np.mean(self.x)) / np.std(self.x)
         self.y = (self.y-np.mean(self.y)) / np.std(self.y)
