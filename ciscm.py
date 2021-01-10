@@ -2,9 +2,12 @@
 of multinomial model class.
 """
 import numpy as np
+import pandas as pd
+from feature_engine.discretisation import EqualFrequencyDiscretiser
 from collections import defaultdict
 from collections import Counter
-from utils import multinomial_with_recurrence, log2
+from utils import multinomial_with_recurrence
+from sklearn.preprocessing import KBinsDiscretizer
 
 __author__ = "Kailash Budhathoki"
 __email__ = "kbudhath@mpi-inf.mpg.de"
@@ -55,11 +58,11 @@ class CISCM():
         n, L = len(data), len(freqs)
         loglikelihood = 0.0
         for freq in freqs.values():
-            loglikelihood += freq * (log2(n) - log2(freq))
+            loglikelihood += freq * (np.log(n) - np.log(freq))
 
         normalising_term = multinomial_with_recurrence(L, n)
 
-        stochastic_complexity = loglikelihood + log2(normalising_term)
+        stochastic_complexity = loglikelihood + np.log(normalising_term)
 
         return stochastic_complexity
 

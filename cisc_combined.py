@@ -28,12 +28,11 @@ class CISCC():
     def compute_handmade_conditions(self,
                                     normality_alpha=0.001,
                                     data_size=2000,
-                                    correlation=0.70,
+                                    correlation=0.75,
                                     var_diff=1e4):
         """ This method computes the value of the conditionals
         used to determine which model class to use. These conditions
         were established by hand. """
-
         k2, p_x = normaltest(self.x)
         k2, p_y = normaltest(self.y)
         corr_xy = np.abs(np.corrcoef(self.x, self.y)[0, 1])
@@ -100,5 +99,12 @@ class CISCC():
                 cause = -1
 
             output = [cause, ciscn_model.confidence, ciscn_model.significance]
+
+        '''
+        if ciscm_model.likelihood_ratio < 0 and ciscn_model.likelihood_ratio > 0:
+            output = [1, ciscm_model.confidence, ciscm_model.significance]
+        if ciscm_model.likelihood_ratio > 0 and ciscn_model.likelihood_ratio < 0:
+            output = [1, ciscn_model.confidence, ciscn_model.significance]
+        '''
 
         return output

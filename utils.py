@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 import os, re, glob
+import pandas as pd
 from math import ceil, e, factorial, log, pi, sqrt, isinf, isnan
 from scipy.special import erf
 from matplotlib import pyplot as plt
@@ -185,3 +186,53 @@ def plot_conf_v_p_value(results, log=False):
         plt.ylabel('p-value')
     plt.xlabel('Confidence')
     plt.show()
+
+xy_TRUTH_PATTERN = re.compile("x\s*-+\s*-*\s*>\s*y", re.IGNORECASE)
+yx_TRUTH_PATTERN = re.compile("y\s*-+\s*-*\s*>\s*x", re.IGNORECASE)
+
+
+def extract_cep_truths():
+    cep_pairs_dir = os.path.join(os.path.dirname(
+        __file__), "data", "cep")
+    cep_pairs = glob.glob(
+        cep_pairs_dir + os.sep + "pair[0-9][0-9][0-9][0-9]_des.txt")
+
+    truths = []
+    for pair in cep_pairs:
+        with open(pair, "r") as fp:
+            desc = fp.read()
+            if xy_TRUTH_PATTERN.findall(desc):
+                truths.append(("x", "y"))
+            else:
+                truths.append(("y", "x"))
+    return truths
+
+
+def extract_cep_data():
+
+    truths = extract_cep_truths()
+    cep_pairs_dir = os.path.join(os.path.dirname(
+        __file__), "data", "cep")
+    cep_pairs = glob.glob(
+        cep_pairs_dir + os.sep + "pair[0-9][0-9][0-9][0-9].txt")
+    multivariate_pairs = [51, 52, 53, 54, 70, 104]
+    cep_df = pd.DataFrame(columns = ['A', 'B', 'weights'],
+                          index = range(len(cep_pairs)))
+    weights = np.loadtxt(cep_pairs_dir + os.sep + "pairmeta.txt")[:, 5]
+
+    for pair in range(len(cep_pairs)):
+        xy_data = np.loadtxt(cep_pairs[pair])
+
+        if truths[pair] == ("x", "y"):
+            cep_df['A'][pair] = xy_data[:, 0]
+            cep_df['B'][pair] = xy_data[:, 1]
+        else:
+            cep_df['A'][pair] = xy_data[:, 1]
+            cep_df['B'][pair] = xy_data[:, 0]
+
+        cep_df['weights'][pair] = weights[pair]
+
+    cep_df = cep_df.drop(multivariate_pairs, axis = 0)
+    cep_df = cep_df.reset_index(drop=True)
+
+    return cep_df

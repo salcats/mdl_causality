@@ -6,27 +6,22 @@ from cdt.data import load_dataset
 from cisc_combined import CISCC
 from utils import plot_multiline, reverse_argsort
 from utils import plot_confidence_tcep, plot_accuracy_with_decision_rate_tcep
-from utils import plot_conf_v_p_value
+from utils import plot_conf_v_p_value, extract_cep_data
 from matplotlib import pyplot as plt
 from math import isinf, isnan
 from joblib import Parallel, delayed
+from cdt.causality.pairwise import RECI
 
 class BenchmarkTest():
 
     def __init__(self):
-        self.data, self.labels = load_dataset('tuebingen')
+        self.data = extract_cep_data()
+        print (self.data)
+        quit()
+        self.data_no_weights = self.data.drop(columns=['weights'])
         self.no_pairs = len(self.data)
-        #self.remove_multivariate_pairs()
         self.ciscc_output = None
         self.ciscc_model = CISCC(1e3, 0.1)
-
-    def remove_multivariate_pairs(self):
-        """ This method removes multivariate pairs. """
-        self.data = self.data.drop(['pair52', 'pair53', 'pair54',
-                                    'pair55', 'pair71'])
-        self.labels = self.labels.drop(['pair52', 'pair53', 'pair54',
-                                        'pair55', 'pair71'])
-        self.no_pairs = self.no_pairs - 5
 
     def evaluate_pair(self, index):
         """ This method evaluates a given pair. """
@@ -34,7 +29,6 @@ class BenchmarkTest():
         y = self.data['B'][index]
         self.ciscc_model.add_data(x, y)
         output = np.asarray((self.ciscc_model.compute_cisc()))
-
         return output
 
     def evaluate_pair_with_ensemble(self,
@@ -57,7 +51,6 @@ class BenchmarkTest():
         elif 10000 < len(x):
             sample_fraction = 0.1
 
-        sample_fraction = 0.2
         sample_size = np.max([50, int(sample_fraction*len(x))])
         results = np.zeros((no_base_learners, 3))
         num_cores = multiprocessing.cpu_count()
@@ -92,11 +85,29 @@ class BenchmarkTest():
         results = np.zeros((self.no_pairs, 3))
         for index in range(self.no_pairs):
             results[index, :] = self.evaluate_pair(index)
+
         #results[:, 1] = (1 - np.exp(-results[:, 1]))/(1 + np.exp(-results[:, 1]))
         #(results[:, 1] - np.min(results[:, 1]))/(
         #                np.max(results[:, 1]) - np.min(results[:, 1]))
 
         return results
+
+    def evaluate_all_pairs_method(self, method):
+
+        if method == 'RECI':
+            obj = RECI()
+            output = obj.predict(self.data_no_weights)
+            results = np.zeros((len(output), 2))
+            results[:, 1] = output
+            for i in range(len(output)):
+                if output[i] < 0:
+                    cause = 1
+                else:
+                    cause = -1
+                results[i, 0] = cause
+        return results
+
+
 
     def evaluate_all_pairs_with_ensemble(self, no_base_learners):
         """ This method evaluates all pairs with ensemble. """
@@ -116,7 +127,15 @@ if __name__ == '__main__':
     benchmark_test = BenchmarkTest()
 
     #results = benchmark_test.evaluate_all_pairs_with_ensemble(50)
-    results = benchmark_test.evaluate_all_pairs()
+    results_cc = benchmark_test.evaluate_all_pairs()
+    results_reci = benchmark_test.evaluate_all_pairs_method('RECI')
+
+    causes = np.column_stack((results_cc[:, 0], results_reci[:, 0]))
+    scores = np.column_stack((results_cc[:, 1], results_reci[:, 1]))
+    methods = ['cc', 'RECI']
+
+    quit()
+
 
     plot_confidence_tcep(results, 0.001)
     plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
