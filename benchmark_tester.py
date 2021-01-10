@@ -6,7 +6,7 @@ from cdt.data import load_dataset
 from cisc_combined import CISCC
 from utils import plot_multiline, reverse_argsort
 from utils import plot_confidence_tcep, plot_accuracy_with_decision_rate_tcep
-from utils import plot_conf_v_p_value, extract_cep_data
+from utils import plot_conf_v_p_value, extract_cep_data, plot_accuracy_comparison
 from matplotlib import pyplot as plt
 from math import isinf, isnan
 from joblib import Parallel, delayed
@@ -16,8 +16,6 @@ class BenchmarkTest():
 
     def __init__(self):
         self.data = extract_cep_data()
-        print (self.data)
-        quit()
         self.data_no_weights = self.data.drop(columns=['weights'])
         self.no_pairs = len(self.data)
         self.ciscc_output = None
@@ -100,11 +98,12 @@ class BenchmarkTest():
             results = np.zeros((len(output), 2))
             results[:, 1] = output
             for i in range(len(output)):
-                if output[i] < 0:
+                if output[i] > 0:
                     cause = 1
                 else:
                     cause = -1
                 results[i, 0] = cause
+    
         return results
 
 
@@ -133,7 +132,7 @@ if __name__ == '__main__':
     causes = np.column_stack((results_cc[:, 0], results_reci[:, 0]))
     scores = np.column_stack((results_cc[:, 1], results_reci[:, 1]))
     methods = ['cc', 'RECI']
-
+    plot_accuracy_comparison(benchmark_test, causes, scores, methods)
     quit()
 
 

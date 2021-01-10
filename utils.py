@@ -89,12 +89,12 @@ def mu_y_cond_x(mu_x, mu_y, var_x, var_y, corr_xy, x):
 
 
 def plot_multiline(Ys, X, labels, xlabel, ylabel, title, fig_name=None):
+
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-
-    for i, Y in enumerate(Ys):
-        plt.plot(X, Y, label=labels[i], linewidth=2.0,
+    for i, (k, v) in enumerate(Ys.items()):
+        plt.plot(X, v, label=k, linewidth=2.0,
                  dash_joinstyle="bevel", solid_capstyle="round", markeredgecolor="none", linestyle="-")
         plt.legend(loc="upper left")
     plt.ylim(0.0, 1.001)
@@ -236,3 +236,33 @@ def extract_cep_data():
     cep_df = cep_df.reset_index(drop=True)
 
     return cep_df
+
+
+def plot_accuracy_comparison(benchmark_test,
+                             causes,
+                             scores,
+                             methods):
+
+    causes = causes == 1
+    dec_rate = np.arange(0.02, 1.01, 0.01)
+    sorted_accs = dict.fromkeys(methods)
+
+    for m_ind in range(len(methods)):
+
+        indices = reverse_argsort(scores[:, m_ind])
+        sorted_causes = np.asarray(([causes[:, m_ind][i] for i in indices]))
+        accuracy = np.sum(causes[:, m_ind])/benchmark_test.no_pairs
+
+        accs = []
+        for r in dec_rate:
+            maxIdx = int(r * benchmark_test.no_pairs)
+            labels = sorted_causes[:maxIdx]
+            accs.append(sum(labels) / len(labels))
+
+        sorted_accs[methods[m_ind]] = accs
+
+    plot_multiline(sorted_accs, dec_rate,
+                    methods,
+                    "decision rate",
+                    "accuracy",
+                    "decision rate versus accuracy")
