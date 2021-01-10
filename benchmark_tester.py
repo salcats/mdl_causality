@@ -10,7 +10,8 @@ from utils import plot_conf_v_p_value, extract_cep_data, plot_accuracy_compariso
 from matplotlib import pyplot as plt
 from math import isinf, isnan
 from joblib import Parallel, delayed
-from cdt.causality.pairwise import RECI
+from cdt.causality.pairwise import RECI, IGCI, CDS, ANM, RCC
+from sklearn.model_selection import train_test_split
 
 class BenchmarkTest():
 
@@ -93,19 +94,92 @@ class BenchmarkTest():
     def evaluate_all_pairs_method(self, method):
 
         if method == 'RECI':
-            obj = RECI()
+            obj = RECI(degree=2)
             output = obj.predict(self.data_no_weights)
             results = np.zeros((len(output), 2))
-            results[:, 1] = output
+            results[:, 1] = np.abs(output)
             for i in range(len(output)):
                 if output[i] > 0:
                     cause = 1
                 else:
                     cause = -1
                 results[i, 0] = cause
-    
+        elif method == 'IGCI':
+            obj = IGCI()
+            output = obj.predict(self.data_no_weights)
+            results = np.zeros((len(output), 2))
+            results[:, 1] = np.abs(output)
+            for i in range(len(output)):
+                if output[i] > 0:
+                    cause = 1
+                else:
+                    cause = -1
+                results[i, 0] = cause
+        elif method == 'IGCI':
+            obj = IGCI()
+            output = obj.predict(self.data_no_weights)
+            results = np.zeros((len(output), 2))
+            results[:, 1] = np.abs(output)
+            for i in range(len(output)):
+                if output[i] > 0:
+                    cause = 1
+                else:
+                    cause = -1
+                results[i, 0] = cause
+        elif method == 'CDS':
+            obj = CDS()
+            output = obj.predict(self.data_no_weights)
+            results = np.zeros((len(output), 2))
+            results[:, 1] = np.abs(output)
+            for i in range(len(output)):
+                if output[i] > 0:
+                    cause = 1
+                else:
+                    cause = -1
+                results[i, 0] = cause
+        elif method == 'ANM':
+            obj = ANM()
+            output = obj.predict(self.data_no_weights)
+            results = np.zeros((len(output), 2))
+            results[:, 1] = np.abs(output)
+            for i in range(len(output)):
+                if output[i] > 0:
+                    cause = 1
+                else:
+                    cause = -1
+                results[i, 0] = cause
+        elif method == 'RCC':
+            labels = np.ones((len(self.data_no_weights)))
+            X_tr, X_te, y_tr, y_te = train_test_split(self.data_no_weights,
+                                                      labels,
+                                                      train_size=.5)
+            obj = RCC()
+            obj.fit(X_tr, y_tr)
+            output = np.concatenate( obj.predict(self.data_no_weights), axis=0 )
+            results = np.zeros((len(output), 2))
+            results[:, 1] = np.abs(output)
+            for i in range(len(output)):
+                if output[i] > 0:
+                    cause = 1
+                else:
+                    cause = -1
+                results[i, 0] = cause
         return results
 
+    def compare_methods(self, methods):
+
+        results_CISCC = self.evaluate_all_pairs()
+        causes = results_CISCC[:, 0]
+        scores = results_CISCC[:, 1]
+        methods.remove('CISCC')
+        for method in methods:
+
+            results = self.evaluate_all_pairs_method(method)
+            causes = np.column_stack((causes, results[:, 0]))
+            scores = np.column_stack((scores, results[:, 1]))
+
+        methods.insert(0, 'CISCC')
+        return causes, scores
 
 
     def evaluate_all_pairs_with_ensemble(self, no_base_learners):
@@ -126,17 +200,17 @@ if __name__ == '__main__':
     benchmark_test = BenchmarkTest()
 
     #results = benchmark_test.evaluate_all_pairs_with_ensemble(50)
-    results_cc = benchmark_test.evaluate_all_pairs()
-    results_reci = benchmark_test.evaluate_all_pairs_method('RECI')
-
-    causes = np.column_stack((results_cc[:, 0], results_reci[:, 0]))
-    scores = np.column_stack((results_cc[:, 1], results_reci[:, 1]))
-    methods = ['cc', 'RECI']
+    methods = ['CISCC','RECI', 'IGCI', 'CDS']
+    causes, scores = benchmark_test.compare_methods(methods)
     plot_accuracy_comparison(benchmark_test, causes, scores, methods)
     quit()
 
 
+
+
+    '''
     plot_confidence_tcep(results, 0.001)
     plot_accuracy_with_decision_rate_tcep(benchmark_test, results,
                                          confidence=True)
     #plot_conf_v_p_value(results, True)
+    '''

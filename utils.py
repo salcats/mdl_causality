@@ -241,23 +241,29 @@ def extract_cep_data():
 def plot_accuracy_comparison(benchmark_test,
                              causes,
                              scores,
-                             methods):
+                             methods,
+                             use_weights=False):
 
     causes = causes == 1
+    if use_weights == True:
+        weights = benchmark_test.data['weights']
+    else:
+        weights = np.ones((len(benchmark_test.data['A'])))
     dec_rate = np.arange(0.02, 1.01, 0.01)
     sorted_accs = dict.fromkeys(methods)
-
     for m_ind in range(len(methods)):
-
         indices = reverse_argsort(scores[:, m_ind])
         sorted_causes = np.asarray(([causes[:, m_ind][i] for i in indices]))
-        accuracy = np.sum(causes[:, m_ind])/benchmark_test.no_pairs
+        sorted_weights = np.asarray(([weights[i] for i in indices]))
+
+        accuracy = np.sum(causes[:, m_ind]*weights)/np.sum(weights)
 
         accs = []
         for r in dec_rate:
             maxIdx = int(r * benchmark_test.no_pairs)
-            labels = sorted_causes[:maxIdx]
-            accs.append(sum(labels) / len(labels))
+            top_k_causes = sorted_causes[:maxIdx]
+            top_k_weights = sorted_weights[:maxIdx]
+            accs.append(np.sum(top_k_causes*top_k_weights) / np.sum(top_k_weights))
 
         sorted_accs[methods[m_ind]] = accs
 
