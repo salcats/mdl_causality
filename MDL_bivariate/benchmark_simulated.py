@@ -2,6 +2,8 @@
 """
 import numpy as np
 import multiprocessing
+import pandas as pd
+import itertools
 from cdt.data import load_dataset
 from cisc_combined import CISCC
 from utils import plot_multiline, reverse_argsort
@@ -17,12 +19,51 @@ from sklearn.model_selection import train_test_split
 class BenchmarkTestSIM():
 
     def __init__(self, sim_type):
-        #self.data = extract_sim_data(sim_type)
+        self.data = extract_sim_data(sim_type)
         #self.data = extract_other_sim_data(sim_type)
-        self.data = generate_data(100, 0.1, 'nn')
+        #self.data = generate_data(100, 0.1, 'nn')
         self.no_pairs = len(self.data)
         self.ciscc_output = None
         self.ciscc_model = CISCC(1e3, 0.1)
+
+    def generate_complex_noise(self, noise_distribution, equation_no):
+
+        x_pairs = np.zeros((100, 100))
+        y_pairs = np.zeros((100, 100))
+
+        for pair in itertools.chain(range(0,100)):
+
+            x = np.random.normal(0, 1, 100)
+            if noise_distribution == 'Gaussian':
+                noise = np.random.normal(0, 1, 100)
+            elif noise_distribution == 'Uniform':
+                noise = np.random.uniform(0, 1, 100)
+            else:
+                noise = np.random.exponential(1)
+            if equation_no == 1:
+                y = np.power(x, 3) + x + noise
+            elif equation_no == 2:
+                y = np.log(x + 10) + np.power(x, 6) + noise
+            elif equation_no == 3:
+                y = np.sin(10*x) + np.exp(3*x) + noise
+            elif equation_no == 4:
+                y = (np.power(x, 3) + x)*np.exp(noise)
+            elif equation_no == 5:
+                y = (np.sin(10*x) + np.exp(3*x))*np.exp(noise)
+            elif equation_no == 6:
+                y = (np.log(x + 10) + np.power(x, 6))*np.exp(noise)
+            elif equation_no == 7:
+                y = np.power(np.log(x+10) + np.power(x, 2), noise)
+            elif equation_no == 8:
+                y = np.log(x + 10) + np.power(x, 2*np.abs(noise))
+            elif equation_no == 9:
+                y = np.log(np.power(x, 7) + 5) + np.power(x, 5) - np.sin(np.power(x, 2)*np.abs(noise))
+
+            x_pairs[pair, :] = x
+            y_pairs[pair, :] = y
+
+        self.data = pd.DataFrame({'A': x_pairs.tolist(), 'B': y_pairs.tolist()})
+
 
     def evaluate_pair(self, index, preprocess):
         """ This method evaluates a given pair. """
@@ -213,9 +254,11 @@ class BenchmarkTestSIM():
 
 if __name__ == '__main__':
 
-    benchmark_test = BenchmarkTestSIM('nn')
+    benchmark_test = BenchmarkTestSIM('SIM')
     methods = ['CISCC', 'RECI', 'IGCI', 'CDS']
+    benchmark_test.generate_complex_noise('Gaussian', 5)
     causes, scores = benchmark_test.compare_methods(methods, True)
-    print (np.sum(np.sum(causes == 1, axis = 1) > 0)/benchmark_test.no_pairs)
+
+    #print (np.sum(np.sum(causes == 1, axis = 1) > 0)/benchmark_test.no_pairs)
     plot_accuracy_comparison(benchmark_test, causes, scores, methods)
     quit()

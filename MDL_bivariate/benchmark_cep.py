@@ -217,7 +217,7 @@ if __name__ == '__main__':
 
     benchmark_test = BenchmarkTestCep()
 
-    methods = ['CISCC','RECI', 'IGCI', 'CDS']
+    methods = ['CISCC', 'IGCI', 'CDS', 'RECI']
     causes, scores = benchmark_test.compare_methods(methods)
     print (np.sum(np.sum(causes == 1, axis = 1) > 0)/benchmark_test.no_pairs)
     plot_accuracy_comparison(benchmark_test, causes, scores, methods, True)

@@ -110,7 +110,7 @@ def plot_multiline(Ys, X, labels, xlabel, ylabel, title, fig_name=None):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     for i, (k, v) in enumerate(Ys.items()):
-        plt.plot(X, v, label=k, linewidth=2.0,
+        plt.plot(X, v, label=labels[i], linewidth=2.0,
                  dash_joinstyle="bevel", solid_capstyle="round", markeredgecolor="none", linestyle="-")
         plt.legend(loc="upper left")
     plt.ylim(0.0, 1.001)
@@ -231,7 +231,7 @@ def extract_cep_data():
         __file__), "data", "cep")
     cep_pairs = glob.glob(
         cep_pairs_dir + os.sep + "pair[0-9][0-9][0-9][0-9].txt")
-    multivariate_pairs = [51, 52, 53, 54, 70, 104]
+    multivariate_pairs = [51, 52, 53, 54, 70, 101, 102, 103, 104, 105, 106, 107]
     cep_df = pd.DataFrame(columns = ['A', 'B', 'weights'],
                           index = range(len(cep_pairs)))
     weights = np.loadtxt(cep_pairs_dir + os.sep + "pairmeta.txt")[:, 5]
@@ -333,13 +333,14 @@ def plot_accuracy_comparison(benchmark_test,
         weights = np.ones((len(benchmark_test.data['A'])))
     dec_rate = np.arange(0.02, 1.01, 0.01)
     sorted_accs = dict.fromkeys(methods)
+    overall_acc_strings = []
+
     for m_ind in range(len(methods)):
         indices = reverse_argsort(scores[:, m_ind])
         sorted_causes = np.asarray(([causes[:, m_ind][i] for i in indices]))
         sorted_weights = np.asarray(([weights[i] for i in indices]))
 
         accuracy = np.sum(causes[:, m_ind]*weights)/np.sum(weights)
-
         accs = []
         for r in dec_rate:
             maxIdx = int(r * benchmark_test.no_pairs)
@@ -348,7 +349,8 @@ def plot_accuracy_comparison(benchmark_test,
             accs.append(np.sum(top_k_causes*top_k_weights) / np.sum(top_k_weights))
 
         sorted_accs[methods[m_ind]] = accs
-
+        overall_acc_strings.append(' ' + str(np.round(accuracy, 4)))
+    methods = np.char.add(methods, overall_acc_strings)
     plot_multiline(sorted_accs, dec_rate,
                     methods,
                     "decision rate",
