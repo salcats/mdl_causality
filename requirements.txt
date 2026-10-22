@@ -1,0 +1,17 @@
+# Core numerics
+numpy
+scipy
+pandas
+
+# Machine learning
+scikit-learn
+feature-engine
+
+# Causal discovery baselines (RECI, IGCI, CDS, ANM, RCC) and CEP dataset loader
+cdt
+
+# Parallel execution
+joblib
+
+# Plotting
+matplotlib
