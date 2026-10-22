@@ -21,11 +21,6 @@ RCC — on two sets of problems:
 - `benchmark_simulated.py` — simulated data with known ground truth, generated
   across several noise and function classes.
 
-**Evaluation beyond raw accuracy.** As well as overall accuracy, the benchmarks
-produce accuracy-versus-decision-rate curves: how performance changes when the
-method is allowed to abstain on the pairs it is least confident about. A method
-that knows when it doesn't know is often more useful than one that always
-guesses.
 
 ## Running it
 
